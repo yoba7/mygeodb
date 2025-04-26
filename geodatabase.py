@@ -10,7 +10,7 @@ import logging
 import pandas as pd
 import sys
 from typing import Literal
-from mygeodb.graph import connectedComponentsLabeler
+from graph import connectedComponentsLabeler
 from io import StringIO
 
 geom_types={1:'POINT',
@@ -229,6 +229,7 @@ class Geodatabase(object):
 
     def executeScript(self,
                       query: str,
+                      path: str = '../sql/',
                       **queryParameters) -> list:
         """
         Execute a sql script. The script can contain many SQLs separated
@@ -244,7 +245,7 @@ class Geodatabase(object):
         
         logging.info(f'{query}:query:start')
         
-        with open(f'../sql/{query}.sql') as f:
+        with open(f'{path}/{query}.sql') as f:
             q = f.read().format(**queryParameters)
 
         r=self.database.executescript(q)
@@ -511,7 +512,7 @@ class Geodatabase(object):
     def getTableHead(self,
                      table: str) -> pd.DataFrame:
 
-        return pd.read_sql(f'select rowid, * from {table} limit 10',self.database,index_col="rowid")
+        return pd.read_sql(f'select rowid, * from {table} limit 10',self.database)
     
             
     def inspectGeometry(self,
@@ -713,7 +714,7 @@ class Geodatabase(object):
             where st_within(pt.geometry,pg.geometry)
             and pt.rowid in ( select rowid
                               from spatialIndex
-                              where f_table_name='DB={points}'
+                              where f_table_name='DB={points.lower()}'
                                 and search_frame=pg.geometry )
         """)
         
